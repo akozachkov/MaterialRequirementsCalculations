@@ -1,0 +1,1 @@
+To calculate a Product, just run something like calculateBOM.bat ArticleExampleProduct 1000.0
