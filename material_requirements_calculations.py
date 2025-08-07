@@ -5,8 +5,9 @@ from process_product_data import ProductTableReaderWriter
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-06 22:14
+Updated 2025-08-06 22:55
 '''
+DEFAULT_TARGET_AMOUNT = 100.0
 
 class MaterialRequirementsCalculations:
     """
@@ -29,7 +30,7 @@ class MaterialRequirementsCalculations:
         self.total_rows = self.raw_materials_count + self.mixes_count
         self.total_cols = self.mixes_count      
     
-    def calculate_material_requirements(self, target_amount: float) -> np.ndarray:
+    def calculate_material_requirements(self) -> np.ndarray:
         """
         Calculate material requirements using the linear algorithm.
         
@@ -43,7 +44,7 @@ class MaterialRequirementsCalculations:
                        used in mix j
         """
       
-        
+        target_amount = DEFAULT_TARGET_AMOUNT
         n, m = self.percentage_table.shape
         target_table = np.zeros((n, m))
         
@@ -83,9 +84,17 @@ class MaterialRequirementsCalculations:
             # Set the amount of mix j itself (it should be equal to the amount needed)
             target_table[current_table_row_with_mix, j] = mix_j_amount   
             
-            print(f"Mix {j+1} amounts: {target_table[:, j]}")
+            #print(f"Mix {j+1} amounts: {target_table[:, j]}")
         
         return target_table
+
+    def scale_material_requirements(self, target_table, target_amount:float) -> np.ndarray:
+        """
+        It just scales material requrements which were pre-calculated with target_amount==100
+        """
+        scaler = target_amount / DEFAULT_TARGET_AMOUNT
+        return target_table * scaler     
+
     
     def get_raw_material_totals(self, target_table: np.ndarray) -> np.ndarray:
         """
@@ -119,8 +128,9 @@ class MaterialRequirementsCalculations:
         print("\nPERCENTAGE TABLE (Original):")
         print("-" * 50)
         headers = [f"Mix {i+1}" for i in range(self.mixes_count)]
-        row_names = [f"Raw Material {i+1}" for i in range(self.raw_materials_count)]
-        row_names.extend([f"Mix {i+1}" for i in range(self.mixes_count)])
+        #row_names = [f"Raw Material {i+1}" for i in range(self.raw_materials_count)]
+        #row_names.extend([f"Mix {i+1}" for i in range(self.mixes_count)])
+        row_names = self.ingredient_names
         
         # Print header
         print(f"{'':<15}", end="")
@@ -197,14 +207,22 @@ def main():
     product_name = "Product1"
     mrc = MaterialRequirementsCalculations(product_name)
     
-    # Target amount 
+    # Precalulate with target amount of 100
+    target_table = mrc.calculate_material_requirements()    
+    print("\nPre-calculated Table:")
+    print(target_table)
+
+    # Use precalulate table to scale to target_amount
     target_amount = 1000.0
-    target_table = mrc.calculate_material_requirements(target_amount)
-    
+    scaled_target_table = mrc.scale_material_requirements(target_table, target_amount)
+    print("\nScaled Table:")
+    print(scaled_target_table)
     
     # Print results
-    mrc.print_results(mrc.percentage_table, target_table, target_amount)
+    mrc.print_results(mrc.percentage_table, scaled_target_table, target_amount)
    
+   
+
 
 if __name__ == "__main__":
     main() 
