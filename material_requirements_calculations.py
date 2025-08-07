@@ -5,7 +5,7 @@ from process_product_data import ProductTableReaderWriter
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-07 9:55
+Updated 2025-08-07 10:37
 '''
 DEFAULT_TARGET_AMOUNT = 100.0
 
@@ -125,17 +125,16 @@ class MaterialRequirementsCalculations:
             target_table: The calculated target table
             target_amount: The target amount
         """
-        print(f"\n{'='*60}")
+        print(f"\n{'='*80}")
         print(f"MATERIAL REQUIREMENTS PLANNING RESULTS")
         print(f"Target Amount: {target_amount}")
-        print(f"{'='*60}")
+        print(f"{'='*80}")
         
         # Print percentage table
         print("\nPERCENTAGE TABLE (Original):")
-        print("-" * 50)
-        headers = [f"Mix {i+1}" for i in range(self.mixes_count)]
-        #row_names = [f"Raw Material {i+1}" for i in range(self.ingredient_count)]
-        #row_names.extend([f"Mix {i+1}" for i in range(self.mixes_count)])
+        print("-" * 65)
+        
+        headers = self.mix_names
         row_names = self.ingredient_names
         
         # Print header
@@ -155,8 +154,9 @@ class MaterialRequirementsCalculations:
             print()
         
         # Print target table
+        self.mix_names.append("BOM") # add Bill of materials Column
         print(f"\nTARGET TABLE (Calculated):")
-        print("-" * 50)
+        print("-" * 65)
         
         # Print header
         print(f"{'':<15}", end="")
@@ -164,7 +164,8 @@ class MaterialRequirementsCalculations:
             print(f"{header:>10}", end="")
         print()
         
-        # Print rows
+        # Print rows including BOM
+        raw_material_totals = self.get_raw_material_totals(target_table)
         for i, row_name in enumerate(row_names):
             print(f"{row_name:<15}", end="")
             for j in range(self.mixes_count):
@@ -172,16 +173,16 @@ class MaterialRequirementsCalculations:
                     print(f"{target_table[i, j]:>10.1f}", end="")
                 else:
                     print(f"{'':>10}", end="")
-            print()
+
+            if (i<len(raw_material_totals)):
+                print(f"{raw_material_totals[i]:>10.1f}", end="")
+            else:
+                print(f"{'n/a':>10}", end="")
+
+            print("")
         
-        # Print raw material totals
-        raw_totals = self.get_raw_material_totals(target_table)
-        print(f"\nRAW MATERIAL TOTALS:")
-        print("-" * 30)
-        for i in range(self.raw_material_count):
-            print(f"Raw Material {i+1}: {raw_totals[i]:.1f}")
-        
-        print(f"\nTotal raw materials needed: {np.sum(raw_totals):.1f}")
+        # Print footer with BOM total           
+        print(f"\nTotal raw materials needed: {np.sum(raw_material_totals):.1f}")
     
     def create_custom_table(self, raw_materials: int, mixes: int) -> np.ndarray:
         """
@@ -205,7 +206,6 @@ class MaterialRequirementsCalculations:
         
         return table
 
-
 def main():
     """
     Main function to demonstrate the algorithm with the example from the article.
@@ -226,9 +226,6 @@ def main():
     
     # Print results
     mrc.print_results(mrc.percentage_table, scaled_target_table, target_amount)
-   
-   
-
 
 if __name__ == "__main__":
     main() 
