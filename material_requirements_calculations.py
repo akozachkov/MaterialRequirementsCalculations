@@ -5,7 +5,7 @@ from process_product_data import ProductTableReaderWriter
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-06 22:55
+Updated 2025-08-07 9:55
 '''
 DEFAULT_TARGET_AMOUNT = 100.0
 
@@ -22,12 +22,19 @@ class MaterialRequirementsCalculations:
     
     def __init__(self, product_name : str):
         self.product_name = product_name
-        reader = ProductTableReaderWriter(product_name, "products")
-        self.percentage_table, self.ingredient_names, self.mix_names = reader.read()
+        reader = ProductTableReaderWriter(product_name, "products")        
+        reader.read()
 
-        self.raw_materials_count = len(self.ingredient_names)
+        self.percentage_table = reader.percentage_table   
+        self.raw_material_names = reader.raw_material_names
+        self.mix_names = reader.mix_names
+        self.ingredient_names = reader.ingredient_names
+
+        self.raw_material_count = len(self.raw_material_names)
         self.mixes_count = len(self.mix_names)
-        self.total_rows = self.raw_materials_count + self.mixes_count
+        self.ingredient_count = len(self.ingredient_names)
+
+        self.total_rows = self.ingredient_count
         self.total_cols = self.mixes_count      
     
     def calculate_material_requirements(self) -> np.ndarray:
@@ -93,8 +100,7 @@ class MaterialRequirementsCalculations:
         It just scales material requrements which were pre-calculated with target_amount==100
         """
         scaler = target_amount / DEFAULT_TARGET_AMOUNT
-        return target_table * scaler     
-
+        return target_table * scaler   
     
     def get_raw_material_totals(self, target_table: np.ndarray) -> np.ndarray:
         """
@@ -106,7 +112,7 @@ class MaterialRequirementsCalculations:
         Returns:
             np.ndarray: Array of total amounts for each raw material
         """
-        raw_material_totals = np.sum(target_table[:self.raw_materials_count, :], axis=1)
+        raw_material_totals = np.sum(target_table[:self.raw_material_count, :], axis=1)
         return raw_material_totals
     
     def print_results(self, percentage_table: np.ndarray, target_table: np.ndarray, 
@@ -128,7 +134,7 @@ class MaterialRequirementsCalculations:
         print("\nPERCENTAGE TABLE (Original):")
         print("-" * 50)
         headers = [f"Mix {i+1}" for i in range(self.mixes_count)]
-        #row_names = [f"Raw Material {i+1}" for i in range(self.raw_materials_count)]
+        #row_names = [f"Raw Material {i+1}" for i in range(self.ingredient_count)]
         #row_names.extend([f"Mix {i+1}" for i in range(self.mixes_count)])
         row_names = self.ingredient_names
         
@@ -172,7 +178,7 @@ class MaterialRequirementsCalculations:
         raw_totals = self.get_raw_material_totals(target_table)
         print(f"\nRAW MATERIAL TOTALS:")
         print("-" * 30)
-        for i in range(self.raw_materials_count):
+        for i in range(self.raw_material_count):
             print(f"Raw Material {i+1}: {raw_totals[i]:.1f}")
         
         print(f"\nTotal raw materials needed: {np.sum(raw_totals):.1f}")
@@ -192,7 +198,7 @@ class MaterialRequirementsCalculations:
         m = mixes
         table = np.zeros((n, m))
         
-        self.raw_materials_count = raw_materials
+        self.ingredient_count = raw_materials
         self.mixes_count = mixes
         self.total_rows = n
         self.total_cols = m
