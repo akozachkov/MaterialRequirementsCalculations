@@ -4,7 +4,7 @@ import csv
 
 '''
 process_product_data.py
-Updated 2025-08-06 15:10
+Updated 2025-08-07 9:39
 '''
 
 class ProductTableReaderWriter:
@@ -25,8 +25,9 @@ class ProductTableReaderWriter:
         script_dir = os.path.dirname(os.path.abspath(__file__))
         self.file_path = os.path.join(script_dir, products_dir, product_filename + ".csv")
         self.percentage_table = None
-        self.ingredient_names = []
+        self.raw_material_names = []
         self.mix_names = []
+        self.ingredient_names = [] # it's really the sum of raw_materials and mixes        
 
     def read(self):
         """
@@ -49,12 +50,13 @@ class ProductTableReaderWriter:
                         for cell in row[1:1 + mixes_count]
                     ])
 
+            # raw_material_names are all the igridents less mixes
+            self.raw_material_names = [name for name in self.ingredient_names if name not in self.mix_names]
+
             # Convert data to NumPy array
             self.percentage_table = np.array(data_rows, dtype=float)
 
-        if (self._validate_percentage_table()):
-            return self.percentage_table, self.ingredient_names, self.mix_names
-        else:
+        if (not self._validate_percentage_table()):  
             raise ValueError("Invalid percentage table")        
 
     def _validate_percentage_table(self) -> bool:
@@ -104,7 +106,8 @@ class ProductTableReaderWriter:
 # Example usage:
 if __name__ == "__main__":
     reader = ProductTableReaderWriter("Product1", "products")
-    percentage_table, ingredient_names, mix_names = reader.read()
-    print(percentage_table)
-    print(ingredient_names)
-    print(mix_names)
+    reader.read()
+    print("\npercentage_table:\n" + str(reader.percentage_table))    
+    print("\nraw_material_names:\n" + str(reader.raw_material_names))
+    print("\nmix_names:\n" + str(reader.mix_names))
+    print("\ningredient_names:\n" + str(reader.ingredient_names))
