@@ -5,7 +5,7 @@ from process_product_data import ProductTableReaderWriter
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-07 10:37
+Updated 2025-08-07 13:02
 '''
 DEFAULT_TARGET_AMOUNT = 100.0
 
@@ -22,22 +22,19 @@ class MaterialRequirementsCalculations:
     
     def __init__(self, product_name : str):
         self.product_name = product_name
-        reader = ProductTableReaderWriter(product_name, "products")        
-        reader.read()
+        self.reader = ProductTableReaderWriter(product_name, "products")        
+        self.reader.read()
 
-        self.percentage_table = reader.percentage_table   
-        self.raw_material_names = reader.raw_material_names
-        self.mix_names = reader.mix_names
-        self.ingredient_names = reader.ingredient_names
+        self.percentage_table = self.reader.percentage_table   
+        self.raw_material_names = self.reader.raw_material_names
+        self.mix_names = self.reader.mix_names
+        self.ingredient_names = self.reader.ingredient_names
 
         self.raw_material_count = len(self.raw_material_names)
         self.mixes_count = len(self.mix_names)
-        self.ingredient_count = len(self.ingredient_names)
-
-        self.total_rows = self.ingredient_count
-        self.total_cols = self.mixes_count      
+        self.ingredient_count = len(self.ingredient_names) 
     
-    def calculate_material_requirements(self) -> np.ndarray:
+    def _calculate_material_requirements(self, target_amount:float=DEFAULT_TARGET_AMOUNT) -> np.ndarray:
         """
         Calculate material requirements using the linear algorithm.
         
@@ -51,7 +48,6 @@ class MaterialRequirementsCalculations:
                        used in mix j
         """
       
-        target_amount = DEFAULT_TARGET_AMOUNT
         n, m = self.percentage_table.shape
         target_table = np.zeros((n, m))
         
@@ -95,12 +91,12 @@ class MaterialRequirementsCalculations:
         
         return target_table
 
-    def scale_material_requirements(self, target_table, target_amount:float) -> np.ndarray:
+    def persist_calculation_request(self, results_string):
         """
-        It just scales material requrements which were pre-calculated with target_amount==100
+        TODO
+        Save each request to calculate BOM as csv file
         """
-        scaler = target_amount / DEFAULT_TARGET_AMOUNT
-        return target_table * scaler   
+
     
     def get_raw_material_totals(self, target_table: np.ndarray) -> np.ndarray:
         """
@@ -113,119 +109,111 @@ class MaterialRequirementsCalculations:
             np.ndarray: Array of total amounts for each raw material
         """
         raw_material_totals = np.sum(target_table[:self.raw_material_count, :], axis=1)
-        return raw_material_totals
-    
-    def print_results(self, percentage_table: np.ndarray, target_table: np.ndarray, 
-                     target_amount: float):
-        """
-        Print the results in a formatted way.
+        return raw_material_totals  
         
+    def _get_results_string(self, percentage_table: np.ndarray, target_table: np.ndarray, 
+                        target_amount: float) -> str:
+        """
+        Generate the results as a formatted string.
+
         Args:
             percentage_table: The original percentage table
             target_table: The calculated target table
             target_amount: The target amount
+
+        Returns:
+            A string containing the formatted results
         """
-        print(f"\n{'='*80}")
-        print(f"MATERIAL REQUIREMENTS PLANNING RESULTS")
-        print(f"Target Amount: {target_amount}")
-        print(f"{'='*80}")
-        
-        # Print percentage table
-        print("\nPERCENTAGE TABLE (Original):")
-        print("-" * 65)
-        
+        lines = []
+        lines.append(f"\n{'='*80}")
+        lines.append("MATERIAL REQUIREMENTS PLANNING RESULTS")
+        lines.append(f"Target Amount: {target_amount}")
+        lines.append(f"{'='*80}")
+
+        # Percentage table
+        lines.append("\nPERCENTAGE TABLE (Original):")
+        lines.append("-" * 65)
+
         headers = self.mix_names
         row_names = self.ingredient_names
-        
-        # Print header
-        print(f"{'':<15}", end="")
-        for header in headers:
-            print(f"{header:>10}", end="")
-        print()
-        
-        # Print rows
+
+        # Header row
+        header_line = f"{'':<15}" + "".join(f"{header:>10}" for header in headers)
+        lines.append(header_line)
+
+        # Data rows
         for i, row_name in enumerate(row_names):
-            print(f"{row_name:<15}", end="")
+            row_line = f"{row_name:<15}"
             for j in range(self.mixes_count):
-                if i < self.total_rows and j < self.total_cols:
-                    print(f"{percentage_table[i, j]:>10.1f}", end="")
+                if i < self.ingredient_count and j < self.mixes_count:
+                    row_line += f"{percentage_table[i, j]:>10.1f}"
                 else:
-                    print(f"{'':>10}", end="")
-            print()
-        
-        # Print target table
-        self.mix_names.append("BOM") # add Bill of materials Column
-        print(f"\nTARGET TABLE (Calculated):")
-        print("-" * 65)
-        
-        # Print header
-        print(f"{'':<15}", end="")
-        for header in headers:
-            print(f"{header:>10}", end="")
-        print()
-        
-        # Print rows including BOM
+                    row_line += f"{'':>10}"
+            lines.append(row_line)
+
+        # Target table
+        lines.append("\nTARGET TABLE (Calculated):")
+        lines.append("-" * 65)
+
+        # Create a copy of headers + "BOM" without modifying self.mix_names
+        headers_with_bom = headers + ["BOM"]
+
+        # Header row
+        target_header_line = f"{'':<15}" + "".join(f"{header:>10}" for header in headers_with_bom)
+        lines.append(target_header_line)
+
+        # Rows with data + BOM column
         raw_material_totals = self.get_raw_material_totals(target_table)
         for i, row_name in enumerate(row_names):
-            print(f"{row_name:<15}", end="")
+            row_line = f"{row_name:<15}"
             for j in range(self.mixes_count):
-                if i < self.total_rows and j < self.total_cols:
-                    print(f"{target_table[i, j]:>10.1f}", end="")
+                if i < self.ingredient_count and j < self.mixes_count:
+                    row_line += f"{target_table[i, j]:>10.1f}"
                 else:
-                    print(f"{'':>10}", end="")
+                    row_line += f"{'':>10}"
 
-            if (i<len(raw_material_totals)):
-                print(f"{raw_material_totals[i]:>10.1f}", end="")
+            if i < len(raw_material_totals):
+                row_line += f"{raw_material_totals[i]:>10.1f}"
             else:
-                print(f"{'n/a':>10}", end="")
+                row_line += f"{'n/a':>10}"
 
-            print("")
-        
-        # Print footer with BOM total           
-        print(f"\nTotal raw materials needed: {np.sum(raw_material_totals):.1f}")
-    
-    def create_custom_table(self, raw_materials: int, mixes: int) -> np.ndarray:
+            lines.append(row_line)
+
+        # BOM Total
+        lines.append(f"\nTotal raw materials needed: {np.sum(raw_material_totals):.1f}")
+
+        # finish output
+        lines.append(f"\n{'='*80}")
+        lines.append("\n")
+
+        return "\n".join(lines)
+
+    def calculateBOM(self, target_amount: float = DEFAULT_TARGET_AMOUNT):
         """
-        Create a custom table with specified dimensions.
-        
-        Args:
-            raw_materials: Number of raw materials
-            mixes: Number of mixes
-            
-        Returns:
-            np.ndarray: Empty table with proper dimensions
-        """
-        n = raw_materials + mixes
-        m = mixes
-        table = np.zeros((n, m))
-        
-        self.ingredient_count = raw_materials
-        self.mixes_count = mixes
-        self.total_rows = n
-        self.total_cols = m
-        
-        return table
+        Encapsulate entire process
+        1. Calculate Target Table
+        2. Print everythig for display
+        3. Persist the results
+        """  
+
+        # Calculate Target Table
+        target_table = self._calculate_material_requirements(target_amount) 
+       
+        # Print everythig for display
+        results_string = self._get_results_string(self.percentage_table, target_table, target_amount)
+        print(results_string)
+
+        # Persist the results
+        self.reader.writeCalculationRequest(results_string)
 
 def main():
     """
     Main function to demonstrate the algorithm with the example from the article.
     """
     product_name = "Product1"
-    mrc = MaterialRequirementsCalculations(product_name)
-    
-    # Precalulate with target amount of 100
-    target_table = mrc.calculate_material_requirements()    
-    print("\nPre-calculated Table:")
-    print(target_table)
-
-    # Use precalulate table to scale to target_amount
-    target_amount = 1000.0
-    scaled_target_table = mrc.scale_material_requirements(target_table, target_amount)
-    print("\nScaled Table:")
-    print(scaled_target_table)
-    
-    # Print results
-    mrc.print_results(mrc.percentage_table, scaled_target_table, target_amount)
+    mrc = MaterialRequirementsCalculations(product_name)    
+    target_amount = 2000.0  
+    mrc.calculateBOM(target_amount)
 
 if __name__ == "__main__":
     main() 
