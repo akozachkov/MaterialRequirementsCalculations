@@ -7,7 +7,7 @@ import process_product_data as ppd
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-07 14:25
+Updated 2025-08-07 14:31
 '''
 DEFAULT_TARGET_AMOUNT = 100.0
 
@@ -213,9 +213,9 @@ def main():
     """
     Main function to demonstrate the algorithm with the example from the article.
     """
-    product_name = "Product1"
+    product_name = "ActicleExampleProduct"
     mrc = MaterialRequirementsCalculations(product_name)    
-    target_amount = 250000.0  
+    target_amount = 1000.0  
     mrc.calculateBOM(target_amount)
 
 if __name__ == "__main__":

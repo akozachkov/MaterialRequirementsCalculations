@@ -1,0 +1,1 @@
+This directory is for csv files with products defined on a Table of Raw Materials, Waters, Mixes with Percentages used on each step.
