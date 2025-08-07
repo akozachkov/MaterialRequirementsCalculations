@@ -1,11 +1,16 @@
-import os
-import numpy as np
 import csv
+from datetime import datetime
+import os
+
+import numpy as np
 
 '''
 process_product_data.py
-Updated 2025-08-07 9:39
+Updated 2025-08-07 14:24
 '''
+
+DEFAULT_PRODUCTS_DIRECTORY = "products"
+DEFAULT_CALCULATIONS_DIRECTORY = "calculation_requests"
 
 class ProductTableReaderWriter:
     """
@@ -16,14 +21,19 @@ class ProductTableReaderWriter:
         - Remaining cells: numeric values for ingredient quantities
     """
 
-    def __init__(self, product_filename: str, products_dir: str = "products"):
+    def __init__(self, product_filename: str, products_dir: str = DEFAULT_PRODUCTS_DIRECTORY, \
+        calculation_requests_dir: str = DEFAULT_CALCULATIONS_DIRECTORY):
         """
         Initialize the reader with the product file name and optional products directory.
         :param product_filename: Name of the product file (e.g., 'Product1.csv')
         :param products_dir: Directory where product files are stored (default 'products')
         """
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        self.file_path = os.path.join(script_dir, products_dir, product_filename + ".csv")
+        self.product_file_path = os.path.join(script_dir, products_dir, product_filename + ".csv")
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename_with_timestamp = f"{product_filename}_{timestamp}.txt"
+        self.calculation_request_file_path = os.path.join(script_dir, calculation_requests_dir, filename_with_timestamp)
+
         self.percentage_table = None
         self.raw_material_names = []
         self.mix_names = []
@@ -33,7 +43,7 @@ class ProductTableReaderWriter:
         """
         Reads the product CSV file and populates the table, ingredient names, and mix names.
         """
-        with open(self.file_path, newline='') as csvfile:
+        with open(self.product_file_path, newline='') as csvfile:
             reader = list(csv.reader(csvfile))
 
             # Extract mix names (skip the first empty column)
@@ -96,12 +106,12 @@ class ProductTableReaderWriter:
         print(f"Valid table: {self.raw_materials_count} raw materials, {self.mixes_count} mixes")
         return True
 
-    def writeTargetTable(self, target_table):
+    def writeCalculationRequest(self, results_string):
         """
-        TODO
         Writes the product calculated CSV file including ingridients, mixees, Bill of Material
-
         """
+        with open(self.calculation_request_file_path, "w", encoding="utf-8") as f:
+            f.write(results_string)
 
 # Example usage:
 if __name__ == "__main__":

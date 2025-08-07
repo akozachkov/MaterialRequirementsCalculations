@@ -1,13 +1,16 @@
-import numpy as np
-from typing import Tuple, Optional
 import json
-from process_product_data import ProductTableReaderWriter
+from typing import Optional, Tuple
+
+import numpy as np
+
+import process_product_data as ppd
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-07 13:02
+Updated 2025-08-07 14:25
 '''
 DEFAULT_TARGET_AMOUNT = 100.0
+
 
 class MaterialRequirementsCalculations:
     """
@@ -22,7 +25,7 @@ class MaterialRequirementsCalculations:
     
     def __init__(self, product_name : str):
         self.product_name = product_name
-        self.reader = ProductTableReaderWriter(product_name, "products")        
+        self.reader = ppd.ProductTableReaderWriter(product_name, ppd.DEFAULT_PRODUCTS_DIRECTORY, ppd.DEFAULT_CALCULATIONS_DIRECTORY)        
         self.reader.read()
 
         self.percentage_table = self.reader.percentage_table   
@@ -212,7 +215,7 @@ def main():
     """
     product_name = "Product1"
     mrc = MaterialRequirementsCalculations(product_name)    
-    target_amount = 2000.0  
+    target_amount = 250000.0  
     mrc.calculateBOM(target_amount)
 
 if __name__ == "__main__":
