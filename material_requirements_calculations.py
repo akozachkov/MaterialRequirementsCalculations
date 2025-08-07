@@ -1,13 +1,13 @@
 import json
 from typing import Optional, Tuple
-
+import sys
 import numpy as np
 
 import process_product_data as ppd
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-07 14:31
+Updated 2025-08-07 16:24
 '''
 DEFAULT_TARGET_AMOUNT = 100.0
 
@@ -215,8 +215,16 @@ def main():
     """
     product_name = "ActicleExampleProduct"
     mrc = MaterialRequirementsCalculations(product_name)    
-    target_amount = 1000.0  
+    target_amount = 3000.0  
     mrc.calculateBOM(target_amount)
 
 if __name__ == "__main__":
-    main() 
+    if len(sys.argv) != 3:
+        print("Usage: python material_requirements_calculations.py <ProductName> <TargetAmount>")
+        sys.exit(1)
+
+    product_name = sys.argv[1]
+    target_amount = float(sys.argv[2])
+
+    mrc = MaterialRequirementsCalculations(product_name)
+    mrc.calculateBOM(target_amount)
