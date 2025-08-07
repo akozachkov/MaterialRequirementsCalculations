@@ -5,7 +5,7 @@ from process_product_data import ProductTableReaderWriter
 
 '''
 material_requirements_calculations.py
-Updated 2025-08-06 11:33
+Updated 2025-08-06 22:14
 '''
 
 class MaterialRequirementsCalculations:
@@ -65,17 +65,12 @@ class MaterialRequirementsCalculations:
         print(f"Mix {m} amounts: {target_table[:, m-1]}")
         
         # Step 2: Calculate remaining mixes working backwards
+        current_table_row_with_mix = n-1
         for j in range(m-2, -1, -1):  # From second-to-last mix to first mix
             # Calculate the amount of mix j needed (Statement 1)
             # T_j = sum of all amounts of mix j used in subsequent mixes
-            mix_j_amount = 0
-            #for k in range(j+1, m):
-                # Mix j is at row n+j (0-indexed)
-                #if n+j < target_table.shape[0]:
-                    #mix_j_amount += target_table[n+j, k]
-
-            for k in range(j+1, m-1):
-                mix_j_amount += target_table[n+j, k]
+            current_table_row_with_mix -= 1
+            mix_j_amount = sum(target_table[current_table_row_with_mix,:]) 
             
             print(f"\nStep {m-j}: Calculating Mix {j+1}")
             print(f"Mix {j+1} amount needed: {mix_j_amount}")
@@ -84,10 +79,9 @@ class MaterialRequirementsCalculations:
             # A[i,j] = T_j * P[i,j] / 100 for i = 1 to n+j
             for i in range(min(n+j+1, target_table.shape[0])):
                 target_table[i, j] = mix_j_amount * self.percentage_table[i, j] / 100.0
-            
+
             # Set the amount of mix j itself (it should be equal to the amount needed)
-            if n+j < target_table.shape[0]:
-                target_table[n+j, j] = mix_j_amount
+            target_table[current_table_row_with_mix, j] = mix_j_amount   
             
             print(f"Mix {j+1} amounts: {target_table[:, j]}")
         
