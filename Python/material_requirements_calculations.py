@@ -215,16 +215,19 @@ def main():
     """
     product_name = "ActicleExampleProduct"
     mrc = MaterialRequirementsCalculations(product_name)    
-    target_amount = 3000.0  
+    target_amount = 5000.0  
     mrc.calculateBOM(target_amount)
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print("Usage: python material_requirements_calculations.py <ProductName> <TargetAmount>")
-        sys.exit(1)
+    #if len(sys.argv) != 3:
+    #    print("Usage: python material_requirements_calculations.py <ProductName> <TargetAmount>")
+    #    sys.exit(1)
 
-    product_name = sys.argv[1]
-    target_amount = float(sys.argv[2])
+    #product_name = sys.argv[1]
+    #target_amount = float(sys.argv[2])
+
+    product_name = "ArticleExampleProduct"
+    target_amount = 5000   
 
     mrc = MaterialRequirementsCalculations(product_name)
     mrc.calculateBOM(target_amount)
