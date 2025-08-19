@@ -181,13 +181,14 @@ public class MaterialRequirementsCalculations {
     /**
      * Encapsulate the entire process.
      */
-    public void calculateBOM(double targetAmount) throws IOException {
+    public String calculateBOM(double targetAmount) throws IOException {
         double[][] targetTable = calculateMaterialRequirements(targetAmount);
 
         String resultsString = getResultsString(percentageTable, targetTable, targetAmount);
-        System.out.println(resultsString);
+        //System.out.println(resultsString);
 
         reader.writeCalculationRequest(resultsString);
+        return resultsString;
     }
 
     private static double[] getColumn(double[][] matrix, int col) {
@@ -203,11 +204,14 @@ public class MaterialRequirementsCalculations {
         double targetAmount = 3000;
 
         // Example local path
-        String localAppDir = "C:\\Temp\\GitHubRepositories\\MaterialRequirementsCalculations\\Java";
+        String localAppDir = 
+        "C:\\Temp\\GitHubRepositories\\MaterialRequirementsCalculations\\Java\\WebContent";
 
         try {
             MaterialRequirementsCalculations mrc = new MaterialRequirementsCalculations(localAppDir, productName);
-            mrc.calculateBOM(targetAmount);
+            String resultsString = mrc.calculateBOM(targetAmount);
+            System.out.println(resultsString);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
