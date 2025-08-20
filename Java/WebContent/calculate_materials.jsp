@@ -1,13 +1,19 @@
 <%@ page import="java.io.File" %>
 <%@ page import="com.kozachkov.material_requirements.MaterialRequirementsCalculations" %>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<html>
-<!-- 8/19/2025 14:07-->
+<!DOCTYPE html>
+<html lang="en">
+<!-- 8/19/2025 20:30 -->
 <head>
+    <meta charset="UTF-8">
     <title>Material Calculator</title>
+
+<link rel="stylesheet" type="text/css" href="styles/MaterialAppStyles.css">
+
+    
 </head>
 <body>
-    <h2>Calculate Material Requirements</h2>
+    <h1>Calculate Material Requirements</h1>
 
     <%
         // Get the application root (e.g., webapps/materials_app/)
@@ -26,7 +32,7 @@
 
     <form method="post" action="calculate_materials.jsp">
         <label for="productName">Choose Product:</label>
-        <select name="productName" id="productName">
+        <select name="productName" id="productName" required>
             <%
                 if (productFiles != null) {
                     for (String file : productFiles) {
@@ -42,17 +48,13 @@
                 }
             %>
         </select>
-        <br/><br/>
 
         <label for="targetAmount">Target Product Amount:</label>
         <input type="text" name="targetAmount" id="targetAmount"
-               value="<%= targetAmountParam != null ? targetAmountParam : "" %>" />
-        <br/><br/>
+               value="<%= targetAmountParam != null ? targetAmountParam : "" %>" required />
 
         <input type="submit" value="Calculate" />
     </form>
-
-    <hr/>
 
     <%
         if (selectedProduct != null && targetAmountParam != null && !targetAmountParam.isEmpty()) {
@@ -63,13 +65,20 @@
                     new MaterialRequirementsCalculations(appPath, selectedProduct);
 
                 String result = calc.calculateBOM(targetAmount);
-
-                out.println("<h3>Results for " + selectedProduct + " (" + targetAmount + " units)</h3>");
-                out.println("<pre>" + result + "</pre>");
+    %>
+                <div class="results">
+                    <h2>Results for <%= selectedProduct %> (<%= targetAmount %> units)</h2>
+                    <pre><%= result %></pre>
+                </div>
+    <%
             } catch (Exception e) {
-                out.println("<p style='color:red'>Error: " + e.getMessage() + "</p>");
+    %>
+                <p class="error">Error: <%= e.getMessage() %></p>
+    <%
             }
         }
     %>
+
+    <a class="menu-link" href="index.html">🏠 Back to Home</a>
 </body>
 </html>
