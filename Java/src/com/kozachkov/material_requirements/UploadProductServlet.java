@@ -12,11 +12,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 
-
 /**
- * Updated 2025-08-19 14:33
+ * Updated 2025-08-21 12:18
  */
-
 
 @WebServlet("/uploadProduct")
 @MultipartConfig
@@ -41,7 +39,7 @@ public class UploadProductServlet extends HttpServlet {
         File file = new File(uploadDir, fileName);
 
         try (InputStream input = filePart.getInputStream();
-             FileOutputStream output = new FileOutputStream(file)) {
+                FileOutputStream output = new FileOutputStream(file)) {
             byte[] buffer = new byte[BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = input.read(buffer)) != -1) {
@@ -51,8 +49,13 @@ public class UploadProductServlet extends HttpServlet {
 
         response.setContentType("text/html");
         response.getWriter().println("<html><body>");
+        response.getWriter()
+                .println("<link rel=\"stylesheet\" type=\"text/css\" href=\"styles/MaterialAppStyles.css\">");
+
         response.getWriter().println("<h3>Upload successful: " + fileName + "</h3>");
-        response.getWriter().println("<a href='index.html'>Back to Home</a>");
+        // response.getWriter().println("<a href='index.html'>Back to Home</a>");
+        response.getWriter().println("<a class=\"menu-link\" href=\"index.html\">&#x1F3E0; Back to Home</a>");
+
         response.getWriter().println("</body></html>");
     }
 
